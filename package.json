@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "ws": "^8.11.0"
+  },
+  "name": "baozimh-reader",
+  "version": "1.0.0",
+  "description": "这个仓库包含了一个简洁的阅读器，可以从 baozimh 中获取图片并提供更好的阅读体验。",
+  "main": "wsserver.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/houtarchat-cyber/baozimh-reader.git"
+  },
+  "author": "Houtar",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/houtarchat-cyber/baozimh-reader/issues"
+  },
+  "homepage": "https://github.com/houtarchat-cyber/baozimh-reader#readme"
+}

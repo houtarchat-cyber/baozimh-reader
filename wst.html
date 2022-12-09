@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manga Reader</title>
+    <style>
+        body {
+            font-size: 0;
+            background-color: darkgray;
+        }
+
+        #container {
+            width: 1200px;
+            margin: auto;
+        }
+
+        #button {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            background-color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            position: fixed;
+            right: 10px;
+            bottom: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+<div id="container"></div>
+<button id="button">下一话</button>
+<script>
+    const container = document.getElementById('container');
+    let end = false;
+    let step = 1;
+    let max_step = 50;
+
+    const insertImage = url => {
+        const img = new Image();
+        img.src = url;
+        img.onload = () => {
+            if (container.children.length > 0) {
+                container.style.width = `${container.children[0].width}px`;
+            }
+            if (img.width === 318 && img.height === 426) {
+                container.removeChild(img);
+                end = true;
+            } else if (step === max_step + 1) {
+                max_step += 50;
+                loadImage(max_step);
+            }
+        }
+        img.onerror = () => {
+            container.removeChild(img);
+            end = true;
+        };
+        container.appendChild(img);
+    };
+
+    const loadImage = to => {
+        if (step > to) {
+            return;
+        } // 判断 from 和 to 的大小关系，如果 from 大于 to，则直接返回
+        for (; !end && step <= to; step++) {
+            const url = `$resText${step}.jpg`;
+            insertImage(url);
+        }
+    }
+
+    loadImage(max_step);
+
+    document.getElementById('button').addEventListener('click', () => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', '/execute');
+        xhr.send();
+        xhr.onload = () => {
+            if (xhr.responseText === '代码已执行') {
+                window.scrollTo(0, 0);
+            } else {
+                alert(`服务器返回了不正确的结果：${xhr.responseText}`);
+            }
+        };
+    });
+</script>
+</body>
+
+</html>
