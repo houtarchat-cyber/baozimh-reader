@@ -28,7 +28,7 @@
     // 向服务器发送消息
     ws.onopen = () => ws.send(JSON.stringify([
         imgSrc.substring(0, imgSrc.lastIndexOf('/') + 1),
-        document.title
+        document.title.slice(0, -7)
     ]))
 
     // 接收服务器的响应消息
