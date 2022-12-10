@@ -58,7 +58,7 @@ httpServer.on('request', async (request, response) => {
             // 替换响应内容中的变量
             // 返回响应
             const parsedText = JSON.parse(responseText);
-            let text = file.replace('$resText', parsedText[0]);
+            let text = file.replaceAll('$resText', parsedText[0]);
             text = text.replace('Manga Reader', parsedText[1]);
             response.end(text);
         } catch (err) {
