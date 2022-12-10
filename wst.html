@@ -8,85 +8,56 @@
     <title>Manga Reader</title>
     <style>
         body {
-            background-color: darkgray;
+            background-color: #000;
         }
 
         #container {
             font-size: 0;
-            width: var(--img-width);
+            width: 500px;
             margin: auto;
         }
 
         img {
-            width: var(--img-width);
+            width: 500px;
         }
 
         #button {
-            font-size: 20px;
+            height: 70px;
+            width: 70px;
             font-weight: bold;
-            color: #333;
-            background-color: #fff;
-            border: none;
-            border-radius: 5px;
+            color: #fff;
+            background-color: #000;
+            border: 1px solid #fff;
+            border-radius: 35px;
             padding: 10px 20px;
             position: fixed;
-            right: 10px;
-            bottom: 10px;
+            right: 20px;
+            bottom: 20px;
             cursor: pointer;
         }
 
-        .menu {
-            background: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 5vw;
+        .next {
+            font-size: 15px;
+            white-space: nowrap;
+            margin: -12.5px;
         }
     </style>
 </head>
 
-<body style="--img-width: 1200px;">
+<body>
     <div id="container"></div>
-    <button id="button">下一话</button>
+    <button id="button"><span class="next">下一话</span></button>
     <script>
         const container = document.getElementById('container');
         let end = false;
         let step = 1;
         let max_step = 50;
 
-        const insertImage = url => {
+        const insertImage = step => {
             const img = document.createElement("img");
-            img.src = url;
-            // // 创建请求对象
-            // const xhr = new XMLHttpRequest();
-
-            // // 发送请求
-            // xhr.open("GET", url);
-            // xhr.send();
-
-            // // 添加事件监听器，监听 onload 事件
-            // xhr.addEventListener("load", (event) => {
-            //     // 获取请求对象
-            //     const xhr = event.target;
-            //     // 判断是否为 404 状态码
-            //     if (xhr.status === 404) {
-            //         img.src = "/404.jpg"
-            //     } else {
-            //         // 获取请求的响应内容
-            //         const response = xhr.response;
-            //         // 将响应内容转换为 blob: URL
-            //         const blobUrl = URL.createObjectURL(response);
-            //         // 设置图像 URL
-            //         img.src = blobUrl;
-            //     }
-            // });
-
+            img.src = `$resText${step}.jpg`;
             img.onload = () => {
-                if (container.children.length > 0) {
-                    // container.style.width = `${container.children[0].width}px`;
-                    document.body.style.setProperty('--img-width',
-                        `${container.children[0].width}px`);
-                }
-                if (img.width === 318 && img.height === 426) {
+                if (img.naturalWidth === 318 && img.naturalHeight === 426) {
                     container.removeChild(img);
                     end = true;
                 } else if (step === max_step + 1) {
@@ -98,105 +69,15 @@
                 container.removeChild(img);
                 end = true;
             };
-
-            // 添加一个事件监听器，监听 contextmenu 事件
-            // let timer = null;
-            // const contextEvent = (event) => {
-            //     // 阻止默认的右键菜单出现
-            //     event.preventDefault();
-
-            //     // 创建菜单所需的元素
-            //     const menu = document.createElement("div");
-            //     const ul = document.createElement("ul");
-            //     const li1 = document.createElement("li");
-            //     const li2 = document.createElement("li");
-
-            //     li1.style.listStyleType = "none";
-            //     li2.style.listStyleType = "none";
-            //     menu.classList.add("menu");
-
-            //     // 设置元素的内容
-            //     li1.innerText = "查看当前页数";
-            //     li2.innerText = "移除本张图片";
-
-            //     // 添加事件监听器，监听点击事件
-            //     li1.addEventListener("click", (event) => {
-            //         // 查看当前页数
-            //         const pageIndex = url.lastIndexOf("/");
-            //         const page = url.substring(pageIndex + 1, url.length - 4);
-            //         alert(page);
-            //         if (menu) {
-            //             menu.remove();
-            //         }
-            //     });
-
-            //     li2.addEventListener("click", (event) => {
-            //         // 移除本张图片
-            //         img.remove();
-            //         document.body.style.setProperty('--img-width',
-            //             `${container.children[0].width}px`);
-            //         if (menu) {
-            //             menu.remove();
-            //         }
-            //     });
-
-            //     // document.addEventListener("click", (event) => {
-            //     //     if (event.target === menu ||
-            //     //         event.target === ul ||
-            //     //         event.target === li1 ||
-            //     //         event.target === li2) {
-            //     //         return;
-            //     //     }
-            //     //     if (menu) {
-            //     //         menu.remove();
-            //     //     }
-            //     // });
-
-            //     // 将元素添加到菜单中
-            //     ul.appendChild(li1);
-            //     ul.appendChild(li2);
-            //     menu.appendChild(ul);
-
-            //     // 将菜单添加到页面上
-            //     document.body.appendChild(menu);
-
-            //     // 定位菜单
-            //     menu.style.position = "absolute";
-            //     menu.style.left = `${event.pageX}px`;
-            //     menu.style.top = `${event.pageY}px`;
-            // };
-            // if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            //     // 移动端
-            //     img.addEventListener("contextmenu", (event => {
-            //         event.preventDefault();
-            //     }));
-            //     img.addEventListener("touchstart", (event) => {
-            //         const newEvent = event.touches[0];
-            //         newEvent.preventDefault = () => null;
-            //         timer = setTimeout(function () {
-            //             contextEvent(newEvent);
-            //         }, 700);
-            //     });
-            //     img.addEventListener("touchend", () => {
-            //         clearTimeout(timer);
-            //     });
-            //     img.addEventListener('touchmove', () => {
-            //         clearTimeout(timer);
-            //     });
-            // } else {
-            //     // 非移动端
-            //     img.addEventListener("contextmenu", contextEvent);
-            // }
             container.appendChild(img);
         };
 
         const loadImage = to => {
             if (step > to) {
                 return;
-            } // 判断 from 和 to 的大小关系，如果 from 大于 to，则直接返回
+            }
             for (; !end && step <= to; step++) {
-                const url = `$resText${step}.jpg`;
-                insertImage(url);
+                insertImage(step);
             }
         }
 
@@ -213,6 +94,22 @@
                     alert(`服务器返回了不正确的结果：${xhr.responseText}`);
                 }
             };
+        });
+
+        function requestFullscreen(element) {
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.mozRequestFullScreen) {
+                element.mozRequestFullScreen();
+            } else if (element.msRequestFullscreen) {
+                element.msRequestFullscreen();
+            } else if (element.webkitRequestFullscreen) {
+                element.webkitRequestFullscreen();
+            }
+        }
+
+        document.documentElement.addEventListener('click', () => {
+            requestFullscreen(document.documentElement);
         });
     </script>
 </body>
