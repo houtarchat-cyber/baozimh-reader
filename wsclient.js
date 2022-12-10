@@ -12,7 +12,6 @@
 (async function () {
     'use strict';
 
-    const ws = new WebSocket('ws://localhost:8080');
     let imgElement = document.querySelector('#chapter-img-0-0 > img');
     // 如果 imgElement 为 null，则循环获取这个元素，直到获取到为止
     while (imgElement === null) {
@@ -25,6 +24,7 @@
 
 
     // 等待WebSocket连接成功
+    const ws = new WebSocket('ws://localhost:8080');
     // 向服务器发送消息
     ws.onopen = () => ws.send(JSON.stringify([
         imgSrc.substring(0, imgSrc.lastIndexOf('/') + 1),
