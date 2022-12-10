@@ -97,6 +97,10 @@
         });
 
         document.documentElement.addEventListener('click', () => {
+            if (event.target.id === 'button' ||
+                event.target.className === 'next') {
+                return;
+            }
             if (document.fullscreenElement) {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
