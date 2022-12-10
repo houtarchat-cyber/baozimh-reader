@@ -8,11 +8,11 @@
     <title>Manga Reader</title>
     <style>
         body {
-            font-size: 0;
             background-color: darkgray;
         }
 
         #container {
+            font-size: 0;
             width: 1200px;
             margin: auto;
         }
@@ -30,65 +30,178 @@
             bottom: 10px;
             cursor: pointer;
         }
+
+        .menu {
+            background: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 5vw;
+        }
     </style>
 </head>
 
 <body>
-<div id="container"></div>
-<button id="button">下一话</button>
-<script>
-    const container = document.getElementById('container');
-    let end = false;
-    let step = 1;
-    let max_step = 50;
+    <div id="container"></div>
+    <button id="button">下一话</button>
+    <script>
+        const container = document.getElementById('container');
+        let end = false;
+        let step = 1;
+        let max_step = 50;
 
-    const insertImage = url => {
-        const img = new Image();
-        img.src = url;
-        img.onload = () => {
-            if (container.children.length > 0) {
-                container.style.width = `${container.children[0].width}px`;
+        const insertImage = url => {
+            const img = document.createElement("img");
+            img.src = url;
+            // // 创建请求对象
+            // const xhr = new XMLHttpRequest();
+
+            // // 发送请求
+            // xhr.open("GET", url);
+            // xhr.send();
+
+            // // 添加事件监听器，监听 onload 事件
+            // xhr.addEventListener("load", (event) => {
+            //     // 获取请求对象
+            //     const xhr = event.target;
+            //     // 判断是否为 404 状态码
+            //     if (xhr.status === 404) {
+            //         img.src = "/404.jpg"
+            //     } else {
+            //         // 获取请求的响应内容
+            //         const response = xhr.response;
+            //         // 将响应内容转换为 blob: URL
+            //         const blobUrl = URL.createObjectURL(response);
+            //         // 设置图像 URL
+            //         img.src = blobUrl;
+            //     }
+            // });
+
+            img.onload = () => {
+                if (container.children.length > 0) {
+                    container.style.width = `${container.children[0].width}px`;
+                }
+                if (img.width === 318 && img.height === 426) {
+                    container.removeChild(img);
+                    end = true;
+                } else if (step === max_step + 1) {
+                    max_step += 50;
+                    loadImage(max_step);
+                }
             }
-            if (img.width === 318 && img.height === 426) {
+            img.onerror = () => {
                 container.removeChild(img);
                 end = true;
-            } else if (step === max_step + 1) {
-                max_step += 50;
-                loadImage(max_step);
-            }
-        }
-        img.onerror = () => {
-            container.removeChild(img);
-            end = true;
-        };
-        container.appendChild(img);
-    };
+            };
 
-    const loadImage = to => {
-        if (step > to) {
-            return;
-        } // 判断 from 和 to 的大小关系，如果 from 大于 to，则直接返回
-        for (; !end && step <= to; step++) {
-            const url = `$resText${step}.jpg`;
-            insertImage(url);
-        }
-    }
+            // 添加一个事件监听器，监听 contextmenu 事件
+            let timer = null;
+            const contextEvent = (event) => {
+                // 阻止默认的右键菜单出现
+                event.preventDefault();
 
-    loadImage(max_step);
+                // 创建菜单所需的元素
+                const menu = document.createElement("div");
+                const ul = document.createElement("ul");
+                const li1 = document.createElement("li");
+                const li2 = document.createElement("li");
 
-    document.getElementById('button').addEventListener('click', () => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', '/execute');
-        xhr.send();
-        xhr.onload = () => {
-            if (xhr.responseText === '代码已执行') {
-                window.scrollTo(0, 0);
+                li1.style.listStyleType = "none";
+                li2.style.listStyleType = "none";
+                menu.classList.add("menu");
+
+                // 设置元素的内容
+                li1.innerText = "查看当前页数";
+                li2.innerText = "移除本张图片";
+
+                // 添加事件监听器，监听点击事件
+                li1.addEventListener("click", (event) => {
+                    // 查看当前页数
+                    const pageIndex = url.lastIndexOf("/");
+                    const page = url.substring(pageIndex + 1, url.length - 4);
+                    alert(page);
+                });
+
+                li2.addEventListener("click", (event) => {
+                    // 移除本张图片
+                    img.remove();
+                    container.style.width = `${container.children[0].width}px`;
+                });
+
+                document.addEventListener("click", (event) => {
+                    if (menu) {
+                        menu.remove();
+                    }
+                });
+
+                document.addEventListener("touchstart", (event) => {
+                    if (menu) {
+                        menu.remove();
+                    }
+                });
+
+                // 将元素添加到菜单中
+                ul.appendChild(li1);
+                ul.appendChild(li2);
+                menu.appendChild(ul);
+
+                // 将菜单添加到页面上
+                document.body.appendChild(menu);
+
+                // 定位菜单
+                menu.style.position = "absolute";
+                menu.style.left = `${event.pageX}px`;
+                menu.style.top = `${event.pageY}px`;
+            };
+            if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                // 移动端
+                img.addEventListener("contextmenu", (event => {
+                    event.preventDefault();
+                }));
+                img.addEventListener("touchstart", (event) => {
+                    const newEvent = event.touches[0];
+                    newEvent.preventDefault = () => null;
+                    timer = setTimeout(function () {
+                        contextEvent(newEvent);
+                    }, 700);
+                });
+                img.addEventListener("touchend", () => {
+                    clearTimeout(timer);
+                });
+                img.addEventListener('touchmove', () => {
+                    clearTimeout(timer);
+                });
             } else {
-                alert(`服务器返回了不正确的结果：${xhr.responseText}`);
+                // 非移动端
+                img.addEventListener("contextmenu", contextEvent);
             }
+            container.appendChild(img);
         };
-    });
-</script>
+
+        const loadImage = to => {
+            if (step > to) {
+                return;
+            } // 判断 from 和 to 的大小关系，如果 from 大于 to，则直接返回
+            for (; !end && step <= to; step++) {
+                const url = `$resText${step}.jpg`;
+                insertImage(url);
+            }
+        }
+
+        loadImage(max_step);
+
+        document.getElementById('button').addEventListener('click', () => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/execute');
+            xhr.send();
+            xhr.onload = () => {
+                if (xhr.responseText === '代码已执行') {
+                    window.scrollTo(0, 0);
+                } else {
+                    alert(`服务器返回了不正确的结果：${xhr.responseText}`);
+                }
+            };
+        });
+    </script>
 </body>
 
 </html>
