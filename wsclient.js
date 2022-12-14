@@ -12,12 +12,12 @@
 (async function () {
     'use strict';
 
-    let imgElement = document.querySelector('#chapter-img-0-0 > img');
+    let imgElement = document.querySelector('#chapter-img-0-0');
     // 如果 imgElement 为 null，则循环获取这个元素，直到获取到为止
     while (imgElement === null) {
-        imgElement = document.querySelector('#chapter-img-0-0 > img');
-        // 使用 await 来阻塞线程，每次循环等待 1 秒钟
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        imgElement = document.querySelector('#chapter-img-0-0');
+        // 使用 await 来阻塞线程，每次循环等待 0.2 秒钟
+        await new Promise(resolve => setTimeout(resolve, 200));
     }
     // 获取到 imgElement 后，处理这个元素
     const imgSrc = imgElement.getAttribute('src');
