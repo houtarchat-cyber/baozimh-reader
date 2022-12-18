@@ -52,6 +52,24 @@
             white-space: nowrap;
             margin: -12.5px;
         }
+
+        .error-message {
+            text-align: center;
+            font-size: 30px;
+            color: #fbff00;
+            margin-top: 20px;
+        }
+
+        .retry-button {
+            margin: 20px auto;
+            width: 40%;
+            font-size: 20px;
+            padding: 10px;
+            border: 1px solid #000;
+            border-radius: 26px;
+            display: block;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -64,16 +82,55 @@
         let end = false;
         let step = 1;
         let max_step = 50;
+        let avalibleServerList = [];
 
         JSON.parse('$resText').forEach(element => {
             const img = document.createElement("img");
             img.src = element;
+            img.onload = () => {
+                img.style.display = "block";
+                const host = img.src.split('/')[2];
+                if (!avalibleServerList.includes(host)) {
+                    avalibleServerList.push(host);
+                }
+            }
+            img.onerror = () => {
+                const host = img.src.split('/')[2];
+                if (avalibleServerList.length === 0) {
+                    const div = document.createElement("div");
+                    div.className = "error-message";
+                    div.innerText = "所有服务器都不可用了";
+                    img.parentNode.insertBefore(div, img);
+
+                    const button = document.createElement("button");
+                    button.className = "retry-button";
+                    button.innerText = "重试";
+                    img.parentNode.insertBefore(button, img);
+
+                    button.addEventListener('click', () => {
+                        img.src = img.src.replace(host,
+                            avalibleServerList[Math.floor(Math.random() *
+                                avalibleServerList.length)]);
+                        div.parentNode.removeChild(div);
+                        button.parentNode.removeChild(button);
+                    });
+
+                    img.style.display = "none";
+                    return;
+                }
+                avalibleServerList =
+                    avalibleServerList.filter(item => item !== host);
+                img.src = img.src.replace(host,
+                    avalibleServerList[Math.floor(Math.random() *
+                        avalibleServerList.length)]);
+            }
             container.appendChild(img);
         });
 
         window.onscroll = function () {
             const div = document.getElementById("nocontent");
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollTop = window.pageYOffset ||
+                document.documentElement.scrollTop;
             if (scrollTop == 0) {
                 div.style.display = "block";
                 container.style.marginTop = "60px";
@@ -100,7 +157,9 @@
         document.documentElement.addEventListener('click', () => {
             if (event.target.id === 'button' ||
                 event.target.className === 'next' ||
-                event.target.id === 'nocontent') {
+                event.target.id === 'nocontent' ||
+                event.target.className === 'retry-button' ||
+                event.target.className === 'error-message') {
                 return;
             }
             if (document.fullscreenElement) {
