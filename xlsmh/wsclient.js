@@ -29,8 +29,12 @@
     const ws = new WebSocket('ws://localhost:8080');
     // 向服务器发送消息
     ws.onopen = () => ws.send(JSON.stringify([
-        document.querySelector("body > h1")
-            .innerText.slice(0, -4),
+        document.querySelector("body > h1").innerText
+            .split(' ').slice(1, -1)
+            .concat('-',
+                document.querySelector("body > h1")
+                    .innerText.split(' ')[0]
+            ).join(' '),
         chapterImages
     ]))
 
