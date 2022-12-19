@@ -1,4 +1,7 @@
 <script>
+    const container = document.getElementById('container');
+    let end = false, step = 1, max_step = 50;
+
     const insertImage = step => {
         if (step === max_step) {
             const xhr = new XMLHttpRequest();
