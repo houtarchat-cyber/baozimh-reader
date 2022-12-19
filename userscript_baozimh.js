@@ -46,14 +46,14 @@
 
             // 用新的数字替换原来的数字
             const newHrefSuffix = parseInt(oldHrefSuffix) + 1;
-            const newHref = window.location.href.replace(oldHrefPart, `0_${newHrefSuffix}`);
-            window.location.href = newHref;
+            window.location.href = window.location.href
+                .replace(oldHrefPart, `0_${newHrefSuffix}`);
         }
     }
 
     // 监听服务器断开连接事件
-    ws.onclose = () => window.alert('Server connection closed.')
+    ws.onclose = () => window.alert('Server connection closed.');
 
     // 监听错误事件
-    ws.onerror = error => window.alert(`Error occurred: ${error.message}`)
+    ws.onerror = error => window.alert(`Error occurred: ${error.message}`);
 })();

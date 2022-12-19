@@ -24,7 +24,7 @@
                     .innerText.split(' ')[0]
             ).join(' '),
         chapterImages
-    ]))
+    ]));
 
     // 接收服务器的响应消息
     ws.onmessage = event => {
@@ -35,8 +35,8 @@
     }
 
     // 监听服务器断开连接事件
-    ws.onclose = () => window.alert('Server connection closed.')
+    ws.onclose = () => window.alert('Server connection closed.');
 
     // 监听错误事件
-    ws.onerror = error => window.alert(`Error occurred: ${error.message}`)
+    ws.onerror = error => window.alert(`Error occurred: ${error.message}`);
 })();

@@ -9,10 +9,8 @@ const httpServer = http.createServer();
 const websocketServer = new WebSocket.Server({ server: httpServer });
 
 // 响应文本
-let responseText;
-
 // 读取文件
-let file, pack1, pack2;
+let responseText, file, pack1, pack2;
 
 // 当客户端连接到 WebSocket 服务器时触发
 websocketServer.on('connection', ws => {
@@ -64,18 +62,18 @@ httpServer.on('request', async (request, response) => {
             // 替换响应内容中的变量
             // 返回响应
             let text = file.replace('Manga Reader', responseText[1]);
-            if (responseText[0] == 'baozimh') {
+            if (responseText[0] === 'baozimh') {
                 text = text.replace('$pack', pack1)
                     .replaceAll('$resText', responseText[2]);
-            } else if (responseText[0] == 'xlsmh') {
+            } else if (responseText[0] === 'xlsmh') {
                 text = text.replace('$pack', pack2)
                     .replace('$resText',
                         JSON.stringify(responseText[2])
                     );
             } else {
-                throw new Error(`未知的源：${responseText[0]}\n`+
-                '请检查源是否已经被支持\n或者联系开发者\n\n'+
-                '支持的源：\nbaozimh\nxlsmh');
+                throw new Error(`未知的源：${responseText[0]}\n` +
+                    '请检查源是否已经被支持\n或者联系开发者\n\n' +
+                    '支持的源：\nbaozimh\nxlsmh');
             }
             response.end(text);
         } catch (err) {

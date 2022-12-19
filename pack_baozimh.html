@@ -1,23 +1,23 @@
 <script>
     const insertImage = step => {
         if (step === max_step) {
-            var xhr = new XMLHttpRequest();
+            const xhr = new XMLHttpRequest();
             xhr.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
+                if (this.readyState === 4 && this.status === 200) {
                     end = false;
                     max_step += 10;
                     loadImage(max_step);
-                } else if (this.readyState == 4 && this.status != 200) {
+                } else if (this.readyState === 4 && this.status !== 200) {
                     end = true;
                 }
             };
-            xhr.onerror = function () {
+            xhr.onerror = () => {
                 end = true;
             }
             xhr.open('GET', `$resText${step}.jpg`, true);
             xhr.send();
         }
-        const img = document.createElement("img");
+        const img = document.createElement('img');
         img.src = `$resText${step}.jpg`;
         img.onload = () => {
             if (img.naturalWidth === 318 && img.naturalHeight === 426) {
