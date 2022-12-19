@@ -16,6 +16,7 @@
     const ws = new WebSocket('ws://localhost:8080');
     // 向服务器发送消息
     ws.onopen = () => ws.send(JSON.stringify([
+        'xlsmh',
         document.querySelector("body > h1").innerText
             .split(' ').slice(1, -1)
             .concat('-',

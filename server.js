@@ -12,7 +12,7 @@ const websocketServer = new WebSocket.Server({ server: httpServer });
 let responseText;
 
 // 读取文件
-let file;
+let file, pack1, pack2;
 
 // 当客户端连接到 WebSocket 服务器时触发
 websocketServer.on('connection', ws => {
@@ -21,7 +21,7 @@ websocketServer.on('connection', ws => {
     // 当客户端发送消息给 WebSocket 服务器时触发
     ws.on('message', message => {
         responseText = JSON.parse(message.toString());
-        console.log('Received message from client: ', responseText[0]);
+        console.log('Received message from client: ', responseText[1]);
         ws.send('connected');
     });
 });
@@ -49,7 +49,13 @@ httpServer.on('request', async (request, response) => {
             }
 
             if (!file) {
-                file = (await fs.promises.readFile('wst.html')).toString();
+                file = (await fs.promises.readFile('general.html')).toString();
+            }
+            if (!pack1) {
+                pack1 = (await fs.promises.readFile('pack_baozimh.html')).toString();
+            }
+            if (!pack2) {
+                pack2 = (await fs.promises.readFile('pack_xlsmh.html')).toString();
             }
 
             // 设置响应头
@@ -57,9 +63,20 @@ httpServer.on('request', async (request, response) => {
 
             // 替换响应内容中的变量
             // 返回响应
-            let text = file.replaceAll('$resText',
-                JSON.stringify(responseText[1]));
-            text = text.replace('Manga Reader', responseText[0]);
+            let text = file.replace('Manga Reader', responseText[1]);
+            if (responseText[0] == 'baozimh') {
+                text = text.replace('$pack', pack1)
+                    .replaceAll('$resText', responseText[2]);
+            } else if (responseText[0] == 'xlsmh') {
+                text = text.replace('$pack', pack2)
+                    .replace('$resText',
+                        JSON.stringify(responseText[2])
+                    );
+            } else {
+                throw new Error(`未知的源：${responseText[0]}\n`+
+                '请检查源是否已经被支持\n或者联系开发者\n\n'+
+                '支持的源：\nbaozimh\nxlsmh');
+            }
             response.end(text);
         } catch (err) {
             // 设置响应头
