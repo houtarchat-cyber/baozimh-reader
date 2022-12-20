@@ -22,6 +22,7 @@
         }
         const img = document.createElement('img');
         img.src = `$resText${step}.jpg`;
+        img.alt = `第${step}页`;
         img.onload = () => {
             if (img.naturalWidth === 318 && img.naturalHeight === 426) {
                 container.removeChild(img);

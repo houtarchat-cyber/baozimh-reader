@@ -21,9 +21,10 @@
 <script>
     const container = document.getElementById('container');
     let availableServerList = [];
-    JSON.parse('$resText').forEach(element => {
+    JSON.parse('$resText').forEach((element, index) => {
         const img = document.createElement('img');
         img.src = element;
+        img.alt = `第${index + 1}页`;
         img.onload = () => {
             img.style.display = 'block';
             const host = img.src.split('/')[2];
