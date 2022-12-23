@@ -2,23 +2,27 @@
     const container = document.getElementById('container');
     let end = false, step = 1, max_step = 50;
 
-    const insertImage = step => {
-        if (step === max_step) {
-            const xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function () {
-                if (this.readyState === 4 && this.status === 200) {
-                    end = false;
-                    max_step += 10;
-                    loadImage(max_step);
-                } else if (this.readyState === 4 && this.status !== 200) {
-                    end = true;
-                }
-            };
-            xhr.onerror = () => {
+    function checkNextChapter(step) {
+        const xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                end = false;
+                max_step += 10;
+                loadImage(max_step);
+            } else if (this.readyState === 4 && this.status !== 200) {
                 end = true;
             }
-            xhr.open('GET', `$resText${step}.jpg`, true);
-            xhr.send();
+        };
+        xhr.onerror = () => {
+            end = true;
+        }
+        xhr.open('GET', `$resText${step}.jpg`, true);
+        xhr.send();
+    }
+
+    const insertImage = step => {
+        if (step === max_step) {
+            checkNextChapter(step);
         }
         const img = document.createElement('img');
         img.src = `$resText${step}.jpg`;

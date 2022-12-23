@@ -26,45 +26,10 @@
         img.src = element;
         img.alt = `第${index + 1}页`;
         img.onload = () => {
-            img.style.display = 'block';
-            const host = img.src.split('/')[2];
-            if (!availableServerList.includes(host)) {
-                availableServerList.push(host);
-            }
-            img.classList.remove('error');
+            onImageLoad(img, index);
         }
         img.onerror = () => {
-            img.classList.add('error');
-            const host = img.src.split('/')[2];
-            if (availableServerList.length === 0) {
-                const div = document.createElement('div');
-                div.className = 'error-message';
-                div.innerText = '所有服务器都不可用了';
-                img.parentNode.insertBefore(div, img);
-
-                const button = document.createElement('button');
-                button.className = 'retry-button';
-                button.innerText = '重试';
-                img.parentNode.insertBefore(button, img);
-
-                button.addEventListener('click', () => {
-                    Array.from(document.getElementsByClassName('error')).forEach(img => {
-                        img.src = img.src.replace(host,
-                            availableServerList[Math.floor(Math.random() *
-                                availableServerList.length)]);
-                        img.parentNode.removeChild(img.previousSibling);
-                        img.parentNode.removeChild(img.previousSibling);
-                    });
-                });
-
-                img.style.display = 'none';
-                return;
-            }
-            availableServerList =
-                availableServerList.filter(item => item !== host);
-            img.src = img.src.replace(host,
-                availableServerList[Math.floor(Math.random() *
-                    availableServerList.length)]);
+            onImageError(img, index);
         }
         container.appendChild(img);
     });

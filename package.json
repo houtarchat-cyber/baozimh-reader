@@ -8,7 +8,7 @@
   "main": "server.js",
   "devDependencies": {},
   "scripts": {
-    "start": "node server.js"
+    "start": "clear && node server.js"
   },
   "repository": {
     "type": "git",
