@@ -21,10 +21,84 @@
 <script>
     const container = document.getElementById('container');
     let availableServerList = [];
+
+    const serverUnavailable = (img, host, index) => {
+        const div = document.createElement('div');
+        div.className = 'error-message';
+        div.innerText = '所有服务器都不可用了';
+
+        const button = document.createElement('button');
+        button.className = 'retry-button';
+        button.innerText = '重试';
+
+        if (index === 0) {
+            container.style.marginTop = '0';
+        } else {
+            container.getElementsByTagName('img')[index - 1]
+                .style.marginBottom = '0';
+        }
+        img.parentNode.insertBefore(div, img);
+        img.parentNode.insertBefore(button, img);
+
+        button.addEventListener('click', () => {
+            Array.from(document.getElementsByClassName('error'))
+                .forEach((img, index) => {
+                    img.src = img.src.replace(host,
+                        availableServerList[Math.floor(Math.random() *
+                            availableServerList.length)]);
+                    img.parentNode.removeChild(img.previousSibling);
+                    img.parentNode.removeChild(img.previousSibling);
+                    if (index === 0) {
+                        container.style.marginTop = '750px';
+                    } else {
+                        container.getElementsByTagName('img')[index - 1]
+                            .style.marginBottom = '750px';
+                    }
+                });
+        });
+    };
+
+    const onImageLoad = (img, index) => {
+        img.style.display = 'block';
+        if (index === 0) {
+            container.style.marginTop = '0';
+        } else {
+            container.getElementsByTagName('img')[index - 1]
+                .style.marginBottom = '0';
+        }
+        const host = img.src.split('/')[2];
+        if (!availableServerList.includes(host)) {
+            availableServerList.push(host);
+        }
+        img.classList.remove('error');
+    };
+
+    const onImageError = (img, index) => {
+        img.classList.add('error');
+        const host = img.src.split('/')[2];
+        if (availableServerList.length === 0) {
+            serverUnavailable(img, host, index);
+
+            img.style.display = 'none';
+            return;
+        }
+        availableServerList =
+            availableServerList.filter(item => item !== host);
+        img.src = img.src.replace(host,
+            availableServerList[Math.floor(Math.random() *
+                availableServerList.length)]);
+    };
+
     JSON.parse('$resText').forEach((element, index) => {
         const img = document.createElement('img');
         img.src = element;
         img.alt = `第${index + 1}页`;
+        if (index === 0) {
+            container.style.marginTop = '750px';
+        } else {
+            container.getElementsByTagName('img')[index - 1]
+                .style.marginBottom = '750px';
+        }
         img.onload = () => {
             onImageLoad(img, index);
         }
