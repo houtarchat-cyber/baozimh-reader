@@ -72,8 +72,23 @@ httpServer.on('request', async (request, response) => {
         // 设置响应头
         response.writeHead(200, { 'Content-Type': 'text/html' });
 
-            // 返回响应
-            response.end(`服务器内部错误：${err.message}`);
+        // 替换响应内容中的变量
+        // 返回响应
+        let text = file.replace('Manga Reader', responseText[1]);
+        if (responseText[0] === 'baozimh') {
+            text = text.replace('$pack', pack1)
+                .replaceAll('$resText', responseText[2]);
+        } else if (responseText[0] === 'xlsmh') {
+            text = text.replace('$pack', pack2)
+                .replace('$resText',
+                    JSON.stringify(responseText[2])
+                );
+        } else if (responseText[0] === '504') {
+            throw new Error(responseText[1]);
+        } else {
+            throw new Error(`未知的源：${responseText[0]}\n` +
+                '请检查源是否已经被支持\n或者联系开发者\n\n' +
+                '支持的源：\nbaozimh\nxlsmh');
         }
         response.end(text);
     } catch (err) {

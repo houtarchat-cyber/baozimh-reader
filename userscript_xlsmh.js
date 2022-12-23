@@ -42,4 +42,12 @@
 
     // 监听错误事件
     ws.onerror = error => window.alert(`Error occurred: ${error.message}`);
+
+    if (document.title === '504 Gateway Time-out') {
+        // 向服务器发送信息
+        ws.onopen = () => ws.send(JSON.stringify([
+            '504',
+            document.title
+        ]));
+    }
 })();
