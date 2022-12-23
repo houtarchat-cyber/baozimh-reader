@@ -22,7 +22,13 @@
             .concat('-',
                 document.querySelector("body > h1")
                     .innerText.split(' ')[0]
-            ).join(' '),
+            ).join(' ')
+            // 先将“话”字全部替换为“回”
+            .replace(/话/g, '回')
+            // 再将符合“第...回”的字符串替换为“第...话”
+            .replace(/第[一二三四五六七八九十百千万亿\d]+回/g, (match) => {
+                return match.replace('回', '话');
+            }),
         chapterImages
     ]));
 
