@@ -31,6 +31,9 @@
         if (event.data === 'goto') {
             // 跳转至下一章
             window.location.href = nextChapterData.url;
+        } else if (event.data === 'refresh') {
+            // 刷新网页
+            window.location.reload();
         }
     }
 

@@ -48,6 +48,9 @@
             const newHrefSuffix = parseInt(oldHrefSuffix) + 1;
             window.location.href = window.location.href
                 .replace(oldHrefPart, `0_${newHrefSuffix}`);
+        } else if (event.data === 'refresh') {
+            // 刷新网页
+            window.location.reload();
         }
     }
 
