@@ -5,10 +5,10 @@
   "name": "baozimh-reader",
   "version": "1.0.0",
   "description": "这个仓库包含了一个简洁的阅读器，可以从 baozimh 中获取图片并提供更好的阅读体验。",
-  "main": "wsserver.js",
+  "main": "server.js",
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
