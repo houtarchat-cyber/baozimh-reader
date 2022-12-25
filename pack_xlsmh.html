@@ -48,12 +48,12 @@
                 img.parentNode.insertBefore(button, img);
 
                 button.addEventListener('click', () => {
-                    Array.from(document.getElementsByClassName('error')).forEach(img => {
-                        img.src = img.src.replace(host,
+                    Array.from(document.getElementsByClassName('error')).forEach(errImg => {
+                        errImg.src = errImg.src.replace(errImg.src.split('/')[2],
                             availableServerList[Math.floor(Math.random() *
                                 availableServerList.length)]);
-                        img.parentNode.removeChild(img.previousSibling);
-                        img.parentNode.removeChild(img.previousSibling);
+                        errImg.parentNode.removeChild(errImg.previousSibling);
+                        errImg.parentNode.removeChild(errImg.previousSibling);
                     });
                 });
 
