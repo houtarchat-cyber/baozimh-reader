@@ -19,6 +19,63 @@
 </style>
 
 <script>
+    // 创建新的构造函数
+    function ArrayWithEventEmitter() {
+        this.pushCallbacks = {};
+        this.idPool = [];
+    }
+
+    // 设置构造函数的原型为 Array.prototype
+    ArrayWithEventEmitter.prototype = Object.create(Array.prototype);
+
+    // 修改构造函数的原型的 constructor 属性为 ArrayWithEventEmitter
+    ArrayWithEventEmitter.prototype.constructor = ArrayWithEventEmitter;
+
+    // 定义 push 方法
+    ArrayWithEventEmitter.prototype.push = function () {
+        // 调用注册的回调函数
+        Object.values(this.pushCallbacks).forEach(fn => fn());
+
+        // 调用对应的原生方法并返回结果（新数组长度）
+        return Array.prototype.push.apply(this, arguments);
+    }
+
+    ArrayWithEventEmitter.prototype.on = function (callback) {
+        let id;
+        if (this.idPool.length > 0) {
+            id = this.idPool.shift();
+        } else {
+            id = Object.keys(this.pushCallbacks).length + 1;
+        }
+        this.pushCallbacks[id] = callback;
+        return id;
+    }
+
+    ArrayWithEventEmitter.prototype.clear = function (id) {
+        delete this.pushCallbacks[id];
+        this.idPool.push(id);
+    }
+
+    // 重写 filter 方法
+    ArrayWithEventEmitter.prototype.filter = function (callback) {
+        // 调用原生 filter 方法
+        const filtered = Array.prototype.filter.call(this, callback);
+
+        // 创建新的 ArrayWithEventEmitter 对象
+        const arr = new ArrayWithEventEmitter();
+
+        // 复制 pushCallbacks 和 idPool
+        arr.pushCallbacks = { ...this.pushCallbacks };
+        arr.idPool = [...this.idPool];
+
+        // 添加过滤后的元素
+        arr.push(...filtered);
+
+        return arr;
+    }
+</script>
+
+<script>
     const container = document.getElementById('container');
     let availableServerList = [];
 
@@ -83,6 +140,14 @@
         if (availableServerList.length === 0) {
             serverUnavailable(img, index);
             img.style.display = 'none';
+
+            const id = availableServerList.on(() => {
+                if (availableServerList.length > 0) {
+                    handleImageLoadError();
+                    availableServerList.clear(id);
+                }
+            });
+
             return;
         }
         availableServerList =
