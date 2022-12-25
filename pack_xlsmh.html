@@ -22,7 +22,24 @@
     const container = document.getElementById('container');
     let availableServerList = [];
 
-    const serverUnavailable = (img, host, index) => {
+    const handleImageLoadError = () => {
+        Array.from(document.getElementsByClassName('error'))
+            .forEach((img, index) => {
+                img.src = img.src.replace(img.src.split('/')[2],
+                    availableServerList[Math.floor(Math.random() *
+                        availableServerList.length)]);
+                img.parentNode.removeChild(img.previousSibling);
+                img.parentNode.removeChild(img.previousSibling);
+                if (index === 0) {
+                    container.style.marginTop = '750px';
+                } else {
+                    container.getElementsByTagName('img')[index - 1]
+                        .style.marginBottom = '750px';
+                }
+            });
+    }
+
+    const serverUnavailable = (img, index) => {
         const div = document.createElement('div');
         div.className = 'error-message';
         div.innerText = '所有服务器都不可用了';
@@ -41,20 +58,7 @@
         img.parentNode.insertBefore(button, img);
 
         button.addEventListener('click', () => {
-            Array.from(document.getElementsByClassName('error'))
-                .forEach((img, index) => {
-                    img.src = img.src.replace(host,
-                        availableServerList[Math.floor(Math.random() *
-                            availableServerList.length)]);
-                    img.parentNode.removeChild(img.previousSibling);
-                    img.parentNode.removeChild(img.previousSibling);
-                    if (index === 0) {
-                        container.style.marginTop = '750px';
-                    } else {
-                        container.getElementsByTagName('img')[index - 1]
-                            .style.marginBottom = '750px';
-                    }
-                });
+            handleImageLoadError();
         });
     };
 
@@ -77,19 +81,16 @@
         img.classList.add('error');
         const host = img.src.split('/')[2];
         if (availableServerList.length === 0) {
-            serverUnavailable(img, host, index);
-
+            serverUnavailable(img, index);
             img.style.display = 'none';
             return;
         }
         availableServerList =
             availableServerList.filter(item => item !== host);
-        img.src = img.src.replace(host,
-            availableServerList[Math.floor(Math.random() *
-                availableServerList.length)]);
+        handleImageLoadError();
     };
 
-    JSON.parse('$resText').forEach((element, index) => {
+    $resText.forEach((element, index) => {
         const img = document.createElement('img');
         img.src = element;
         img.alt = `第${index + 1}页`;
