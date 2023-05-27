@@ -23,6 +23,9 @@
     let availableServerList = [];
     JSON.parse('$resText').forEach((element, index) => {
         const img = document.createElement('img');
+        const timeout = setTimeout(() => {
+            img.onerror();
+        }, 2000);
         img.src = element;
         img.alt = `第${index + 1}页`;
         img.onload = () => {
@@ -32,6 +35,7 @@
                 availableServerList.push(host);
             }
             img.classList.remove('error');
+            clearTimeout(timeout);
         }
         img.onerror = () => {
             img.classList.add('error');
