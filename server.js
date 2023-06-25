@@ -26,8 +26,21 @@ websocketServer.on('connection', ws => {
 
 // 当 HTTP 服务器接收到请求时触发
 httpServer.on('request', async (request, response) => {
+    if (request.method === 'OPTIONS') {
+        response.writeHead(204, {
+            'Access-Control-Allow-Methods': 'OPTIONS, GET',
+            'Access-Control-Max-Age': 2592000, // 30 days
+        });
+        response.end();
+        return;
+    }
     if (request.url === '/favicon.ico') {
-        response.writeHead(200, { 'Content-Type': 'image/x-icon' });
+        response.writeHead(200, {
+            'Content-Type': 'image/x-icon',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS, GET',
+            'Access-Control-Max-Age': 2592000, // 30 days
+        });
         response.end();
         return;
     }
@@ -40,7 +53,12 @@ httpServer.on('request', async (request, response) => {
             }
         });
         // 响应请求
-        response.writeHead(200, { 'Content-Type': 'text/plain;charset=utf-8' });
+        response.writeHead(200, {
+            'Content-Type': 'text/plain;charset=utf-8',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS, GET',
+            'Access-Control-Max-Age': 2592000, // 30 days
+        });
         response.end('用户脚本已刷新');
         return;
     }
@@ -50,7 +68,12 @@ httpServer.on('request', async (request, response) => {
                 client.send('goto');
             }
         });
-        response.writeHead(200, { 'Content-Type': 'text/plain;charset=utf-8' });
+        response.writeHead(200, {
+            'Content-Type': 'text/plain;charset=utf-8',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS, GET',
+            'Access-Control-Max-Age': 2592000, // 30 days
+        });
         response.end('代码已执行');
         return;
     }
@@ -70,7 +93,12 @@ httpServer.on('request', async (request, response) => {
         }
 
         // 设置响应头
-        response.writeHead(200, { 'Content-Type': 'text/html' });
+        response.writeHead(200, {
+            'Content-Type': 'text/html',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS, GET',
+            'Access-Control-Max-Age': 2592000, // 30 days
+        });
 
         // 替换响应内容中的变量
         // 返回响应
@@ -93,7 +121,12 @@ httpServer.on('request', async (request, response) => {
         response.end(text);
     } catch (err) {
         // 设置响应头
-        response.writeHead(500, { 'Content-Type': 'text/html;charset=utf-8' });
+        response.writeHead(500, {
+            'Content-Type': 'text/html;charset=utf-8',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS, GET',
+            'Access-Control-Max-Age': 2592000, // 30 days
+        });
 
         // 返回响应
         const text = `
