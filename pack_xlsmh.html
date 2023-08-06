@@ -21,7 +21,8 @@
 <script>
     const container = document.getElementById('container');
     let availableServerList = [];
-    JSON.parse('$resText').forEach((element, index) => {
+    let errorServerList = [];
+    let appendImg = (element, index) => {
         const img = document.createElement('img');
         const timeout = setTimeout(() => {
             img.onerror();
@@ -41,35 +42,63 @@
             img.classList.add('error');
             const host = img.src.split('/')[2];
             if (availableServerList.length === 0) {
-                const div = document.createElement('div');
-                div.className = 'error-message';
-                div.innerText = '所有服务器都不可用了';
-                img.parentNode.insertBefore(div, img);
+                availableServerList = [...availableServerList, ...errorServerList];
+                // const div = document.createElement('div');
+                // div.className = 'error-message';
+                // div.innerText = '所有服务器都不可用了';
+                // img.parentNode.insertBefore(div, img);
 
-                const button = document.createElement('button');
-                button.className = 'retry-button';
-                button.innerText = '重试';
-                img.parentNode.insertBefore(button, img);
+                // const button = document.createElement('button');
+                // button.className = 'retry-button';
+                // button.innerText = '重试';
+                // img.parentNode.insertBefore(button, img);
 
-                button.addEventListener('click', () => {
-                    Array.from(document.getElementsByClassName('error')).forEach(errImg => {
-                        errImg.src = errImg.src.replace(errImg.src.split('/')[2],
-                            availableServerList[Math.floor(Math.random() *
-                                availableServerList.length)]);
-                        errImg.parentNode.removeChild(errImg.previousSibling);
-                        errImg.parentNode.removeChild(errImg.previousSibling);
-                    });
+                // button.addEventListener('click', () => {
+                Array.from(document.getElementsByClassName('error')).forEach(errImg => {
+                    errImg.src = errImg.src.replace(errImg.src.split('/')[2],
+                        availableServerList[Math.floor(Math.random() *
+                            availableServerList.length)]);
+                    // errImg.parentNode.removeChild(errImg.previousSibling);
+                    // errImg.parentNode.removeChild(errImg.previousSibling);
                 });
+                // });
 
-                img.style.display = 'none';
-                return;
+                // img.style.display = 'none';
+                // return;
             }
             availableServerList =
                 availableServerList.filter(item => item !== host);
+            errorServerList.push(host)
             img.src = img.src.replace(host,
                 availableServerList[Math.floor(Math.random() *
                     availableServerList.length)]);
         }
         container.appendChild(img);
-    });
+    }
+    JSON.parse('$resText').forEach(appendImg);
+    document.getElementById('button').style.display = 'none';
+    let isLoadingPage = false;
+    let getNextPage = function () {
+        if (
+            window.innerHeight + window.scrollY >=
+            0.9 * document.body.offsetHeight &&
+            !isLoadingPage
+        ) {
+            isLoadingPage = true;
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/get_next_page');
+            xhr.send();
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    JSON.parse(xhr.responseText).forEach(appendImg);
+                    isLoadingPage = false;
+                } else if (xhr.readyState === 4 && xhr.status !== 200) {
+                    // document.getElementById('button').style.display = 'block';
+                    isLoadingPage = false;
+                    getNextPage();
+                }
+            }
+        }
+    }
+    window.addEventListener("scroll", getNextPage);
 </script>

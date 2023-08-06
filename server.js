@@ -10,7 +10,7 @@ const websocketServer = new WebSocket.Server({ server: httpServer });
 
 // 响应文本
 // 读取文件
-let responseText, file, pack1, pack2;
+let responseText, file, pack1, pack2, hasContent;
 
 // 当客户端连接到 WebSocket 服务器时触发
 websocketServer.on('connection', ws => {
@@ -20,6 +20,7 @@ websocketServer.on('connection', ws => {
     ws.on('message', message => {
         responseText = JSON.parse(message.toString());
         console.log('Received message from client: ', responseText[1]);
+        hasContent = true;
         ws.send('connected');
     });
 });
@@ -50,6 +51,7 @@ httpServer.on('request', async (request, response) => {
         websocketServer.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN) {
                 client.send('refresh');
+                hasContent = false;
             }
         });
         // 响应请求
@@ -66,6 +68,7 @@ httpServer.on('request', async (request, response) => {
         websocketServer.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN) {
                 client.send('goto');
+                hasContent = false;
             }
         });
         response.writeHead(200, {
@@ -75,6 +78,33 @@ httpServer.on('request', async (request, response) => {
             'Access-Control-Max-Age': 2592000, // 30 days
         });
         response.end('代码已执行');
+        return;
+    }
+    if (request.url === '/get_next_page') {
+        if (hasContent) {
+            hasContent = false;
+            response.writeHead(200, {
+                'Content-Type': 'text/json;charset=utf-8',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'OPTIONS, GET',
+                'Access-Control-Max-Age': 2592000, // 30 days
+            });
+            response.end(JSON.stringify(responseText[2]));
+            websocketServer.clients.forEach(client => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send('goto');
+                    hasContent = false;
+                }
+            });
+        } else {
+            response.writeHead(500, {
+                'Content-Type': 'text/json;charset=utf-8',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'OPTIONS, GET',
+                'Access-Control-Max-Age': 2592000, // 30 days
+            });
+            response.end();
+        }
         return;
     }
     try {
@@ -119,6 +149,11 @@ httpServer.on('request', async (request, response) => {
                 '支持的源：\nbaozimh\nxlsmh');
         }
         response.end(text);
+        websocketServer.clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send('goto');
+            }
+        });
     } catch (err) {
         // 设置响应头
         response.writeHead(500, {
