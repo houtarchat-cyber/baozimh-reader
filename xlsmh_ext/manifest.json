@@ -1,0 +1,46 @@
+{
+    "manifest_version": 3,
+    "name": "Xlsmh Ext++ with WebSocket",
+    "version": "0.4",
+    "description": "具有WebSocket支持的增强漫画阅读器。",
+    "background": {
+        "service_worker": "background.js"
+    },
+    "permissions": [
+        "activeTab",
+        "scripting"
+    ],
+    "host_permissions": [
+        "http://www.xlsmh.com/manhua/*",
+        "https://www.xlsmh.com/manhua/*"
+    ],
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "icons": {
+        "64": "icon.png"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "http://www.xlsmh.com/manhua/*",
+                "https://www.xlsmh.com/manhua/*"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "inject.js"
+            ],
+            "matches": [
+                "http://www.xlsmh.com/*",
+                "https://www.xlsmh.com/*"
+            ],
+            "use_dynamic_url": true
+        }
+    ]
+}
