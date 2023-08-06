@@ -49,7 +49,9 @@
     // 监听错误事件
     ws.onerror = error => window.alert(`Error occurred: ${error.message}`);
 
-    if (document.title === '504 Gateway Time-out') {
+    if (document.title === '504 Gateway Time-out' ||
+        document.title === 'www.xlsmh.com | 504: Gateway time-out' ||
+        document.querySelector("#cf-error-details")) {
         // 向服务器发送信息
         ws.onopen = () => ws.send(JSON.stringify([
             '504',
