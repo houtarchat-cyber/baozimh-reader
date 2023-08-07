@@ -32,4 +32,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: Executable
-          path: ./build/*
+          path: /home/runner/work/baozimh-reader/baozimh-reader/pkg/build/*
