@@ -6,9 +6,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: pkg
 
     steps:
       - name: Checkout code
@@ -32,4 +29,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: Executable
-          path: /home/runner/work/baozimh-reader/baozimh-reader/pkg/build/*
+          path: ./build/*

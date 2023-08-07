@@ -1,6 +1,12 @@
 const http = require('http');
 const fs = require('fs');
+const path = require('path');
 const WebSocket = require('ws');
+
+const getDataPath = (filename) =>
+    path.join(
+        process.pkg?.defaultEntrypoint ??
+        __dirname, filename);
 
 // 创建 HTTP 服务器
 const httpServer = http.createServer();
@@ -89,7 +95,10 @@ httpServer.on('request', async (request, response) => {
                 'Access-Control-Allow-Methods': 'OPTIONS, GET',
                 'Access-Control-Max-Age': 2592000, // 30 days
             });
-            response.end(JSON.stringify(responseText[2]));
+            response.end(JSON.stringify([
+                responseText[1],
+                responseText[2]
+            ]));
             websocketServer.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send('goto');
@@ -113,13 +122,13 @@ httpServer.on('request', async (request, response) => {
         }
 
         if (!file) {
-            file = (await fs.promises.readFile('general.html')).toString();
+            file = (await fs.promises.readFile(getDataPath('general.html'))).toString();
         }
         if (!pack1) {
-            pack1 = (await fs.promises.readFile('pack_baozimh.html')).toString();
+            pack1 = (await fs.promises.readFile(getDataPath('pack_baozimh.html'))).toString();
         }
         if (!pack2) {
-            pack2 = (await fs.promises.readFile('pack_xlsmh.html')).toString();
+            pack2 = (await fs.promises.readFile(getDataPath('pack_xlsmh.html'))).toString();
         }
 
         // 设置响应头

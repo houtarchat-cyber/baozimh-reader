@@ -90,7 +90,9 @@
             xhr.send();
             xhr.onreadystatechange = () => {
                 if (xhr.readyState === 4 && xhr.status === 200) {
-                    JSON.parse(xhr.responseText).forEach(appendImg);
+                    const res = JSON.parse(xhr.responseText);
+                    document.title = res[0];
+                    res[1].forEach(appendImg);
                     isLoadingPage = false;
                 } else if (xhr.readyState === 4 && xhr.status !== 200) {
                     // document.getElementById('button').style.display = 'block';
