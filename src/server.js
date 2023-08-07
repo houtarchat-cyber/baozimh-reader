@@ -5,8 +5,10 @@ const WebSocket = require('ws');
 
 const getDataPath = (filename) =>
     path.join(
-        process.pkg?.defaultEntrypoint ??
-        __dirname, filename);
+        process.pkg ?
+            __dirname :
+            process.cwd(),
+        filename);
 
 // 创建 HTTP 服务器
 const httpServer = http.createServer();
