@@ -26,7 +26,7 @@ jobs:
         run: npm i -g pkg
 
       - name: Build Executable
-        run: pkg server.js --out-path build
+        run: pkg . --out-path build
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v2
