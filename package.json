@@ -6,8 +6,8 @@
   "name": "manga-reader",
   "version": "1.0.0",
   "description": "这个仓库包含了一个简洁的阅读器，可以从 baozimh 或 xlsmh 中获取图片并提供更好的阅读体验。",
-  "main": "server.js",
-  "bin": "server.js",
+  "main": "src/server.js",
+  "bin": "src/server.js",
   "scripts": {
     "start": "cd src && clear && node server.js",
     "build": "pkg ./src/ --out-path build"
