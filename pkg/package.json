@@ -9,7 +9,7 @@
   "main": "server.js",
   "bin": "server.js",
   "scripts": {
-    "build": "pkg . --out-path build --public"
+    "build": "pkg . --out-path build"
   },
   "repository": {
     "type": "git",
