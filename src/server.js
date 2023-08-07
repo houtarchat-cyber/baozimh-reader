@@ -2,6 +2,10 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const WebSocket = require('ws');
+const Client = require("ssh2").Client;
+const Socket = require("net").Socket;
+const util = require('util');
+const os = require('os');
 
 const getDataPath = (filename) =>
     path.join(
@@ -209,5 +213,69 @@ httpServer.on('request', async (request, response) => {
 
 // 监听 8080 端口
 httpServer.listen(8080, () => {
-    console.log('Server is listening on port 8080');
+    console.log("==========================================");
+    console.log("Server Status:");
+    console.log("==========================================");
+    console.log("The server is currently up and running.");
+    console.log("It is listening for incoming connections on port 8080.");
+    console.log();
+    console.log("You can connect to the server using the following addresses:");
+    const addressesMessage = [
+        "1. Localhost Address: ",
+        "2. Local Network Address: "
+    ]
+    Object.values(os.networkInterfaces())
+        .flat()
+        .filter((iface) => iface.family === 'IPv4')
+        .map((iface, index) => [addressesMessage[index], iface.address])
+        .slice(0, 2)
+        .forEach(ip => console.log(`${ip[0]}http://${ip[1]}:8080/`));
+    // Create an SSH client
+    const conn = new Client();
+
+    // 创建一个新的 Socket 并设置错误处理
+    function createSocket(reject) {
+        const srcSocket = new Socket();
+        srcSocket.on('error', () => {
+            if (!srcSocket.remote) reject();
+            else srcSocket.remote.end();
+        });
+        return srcSocket;
+    }
+
+    conn.on('ready', async () => {
+        // 开始一个交互式 shell 会话
+        conn.shell((err, stream) => {
+            if (err) console.error(err);
+            const ansiEscapeSequenceRegex = /\x1b\[\d+m/g;
+            stream.on('data', data => {
+                data = data.toString().replace(ansiEscapeSequenceRegex, '');
+                if (data === '') return;
+                if (data.startsWith('Forwarding')) {
+                    console.log(`3. Public Address (via Serveo): ${data.split(' ').pop().slice(0, -2) + '/'}`);
+                    console.log();
+                    console.log("Please choose the address that is most appropriate for your needs.");
+                    console.log("==========================================");
+                    return;
+                }
+                console.log(data.slice(0, -2));
+            });
+        })
+
+        // 请求从远程服务器转发端口
+        conn.forwardIn('LOCALHOST', 80, (err, port) => {
+            if (err) console.error(err);
+            conn.emit('forward-in', port);
+        });
+    }).on('tcp connection', (_, accept, reject) => {
+        const srcSocket = createSocket(reject);
+        srcSocket.connect(8080, 'localhost', () => {
+            srcSocket.remote = accept();
+            srcSocket.pipe(srcSocket.remote).pipe(srcSocket);
+        });
+    }).connect({
+        host: 'serveo.net',
+        username: os.userInfo().username,
+        tryKeyboard: true
+    });
 });
