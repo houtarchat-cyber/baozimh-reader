@@ -2,13 +2,13 @@
   "dependencies": {
     "ws": "^8.11.0"
   },
-  "name": "baozimh-reader",
+  "name": "manga-reader",
   "version": "1.0.0",
-  "description": "这个仓库包含了一个简洁的阅读器，可以从 baozimh 中获取图片并提供更好的阅读体验。",
+  "description": "这个仓库包含了一个简洁的阅读器，可以从 baozimh 或 xlsmh 中获取图片并提供更好的阅读体验。",
   "main": "server.js",
   "devDependencies": {},
   "scripts": {
-    "start": "clear && node server.js"
+    "start": "cd src && clear && node server.js"
   },
   "repository": {
     "type": "git",
