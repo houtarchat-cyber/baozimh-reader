@@ -28,6 +28,28 @@
 5. 打开任意包子漫画或下拉式漫画的具体阅读页面（不是详情页），安装完用户脚本后，图片会自动加载。
 6. 打开浏览器中的 localhost:8080，即可使用阅读器。
 
+### 自定义 favicon
+
+你可以通过`--favicon`标志来设置自定义的 favicon。下面是一些可能的用法：
+
+- 禁用 favicon：`npm run start -- --favicon disable` 或 `./manga-reader --favicon disable`
+- 使用本地文件作为 favicon：`npm run start -- --favicon /path/to/your/favicon.png`
+- 使用网络地址作为 favicon：`npm run start -- --favicon https://example.com/favicon.png`
+
+如果没有提供 `--favicon`标志，或者提供的路径不存在，系统将默认使用 `https://parsefiles.back4app.com/JPaQcFfEEQ1ePBxbf6wvzkPMEqKYHhPYv8boI1Rc/f1a996fc1f45497819f261965f897780_syeAMS9yEl.png`。
+
+### HTTP Strict Transport Security (HSTS)
+
+如果你的请求头包含 `.serveo.net`，系统将默认启用 HSTS，并将 'max-age' 设置为 15552000 并包括所有子域。如果你想禁用 HSTS，你可以使用 `--disableHSTS` 标志。
+
+### Serveo
+
+如果你想禁用 Serveo，你可以使用 `--disableServeo` 标志。
+
+### 自定义端口
+
+你可以通过 `--port` 标志来自定义服务的端口。例如，如果你想要服务运行在 3000 端口，你可以使用以下命令：`npm run start -- --port 3000`。如果没有提供 `--port` 标志，系统将默认使用 8080 端口。
+
 ## 注意事项
 
 - 请确保已经安装了 Node.js 和相关的用户脚本管理器。

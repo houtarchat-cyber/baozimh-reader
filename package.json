@@ -2,7 +2,8 @@
   "dependencies": {
     "pkg": "^5.8.1",
     "ssh2": "^1.14.0",
-    "ws": "^8.11.0"
+    "ws": "^8.11.0",
+    "yargs": "^17.7.2"
   },
   "name": "manga-reader",
   "version": "1.0.0",

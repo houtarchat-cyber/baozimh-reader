@@ -1,11 +1,12 @@
 const http = require('http');
-const fs = require('fs');
-const path = require('path');
 const WebSocket = require('ws');
 const Client = require("ssh2").Client;
 const Socket = require("net").Socket;
-const util = require('util');
+const fs = require('fs');
+const path = require('path');
 const os = require('os');
+const yargs = require('yargs/yargs');
+const { hideBin } = require('yargs/helpers');
 
 const getDataPath = (filename) =>
     path.join(
@@ -13,6 +14,8 @@ const getDataPath = (filename) =>
             __dirname :
             process.cwd(),
         filename);
+
+const argv = yargs(hideBin(process.argv)).argv;
 
 // 创建 HTTP 服务器
 const httpServer = http.createServer();
@@ -39,6 +42,24 @@ websocketServer.on('connection', ws => {
 
 // 当 HTTP 服务器接收到请求时触发
 httpServer.on('request', async (request, response) => {
+    if (!argv.disableServeo && request.headers.host.endsWith('.serveo.net')) {
+        if (argv.disableHSTS) {
+            response.setHeader('Strict-Transport-Security', 'max-age=0');
+            console.warn('HSTS is disabled. This is not recommended and may cause security issues.');
+        } else {
+            response.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+            // 检查 'secure' cookie
+            if (!/(?<=secure=)[^;]*/.test(request?.headers?.cookie)) {
+                // 如果 cookie 不存在，重定向到 HTTPS 并设置 'secure' cookie
+                response.writeHead(301, {
+                    'Location': 'https://' + request.headers.host + request.url,
+                    'Set-Cookie': 'secure=1; HttpOnly'
+                });
+                response.end();
+                return;
+            }
+        }
+    }
     if (request.method === 'OPTIONS') {
         response.writeHead(204, {
             'Access-Control-Allow-Methods': 'OPTIONS, GET',
@@ -48,13 +69,38 @@ httpServer.on('request', async (request, response) => {
         return;
     }
     if (request.url === '/favicon.ico') {
-        response.writeHead(200, {
-            'Content-Type': 'image/x-icon',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'OPTIONS, GET',
-            'Access-Control-Max-Age': 2592000, // 30 days
-        });
-        response.end();
+        const [faviconUrl, code] = (() => {
+            if (argv.favicon === 'disable') {
+                console.log('Favicon disabled. You can use --favicon to set a custom favicon or empty --favicon to use the default favicon.');
+                return [Buffer.from('R0lGODlhAQABAAAAACwAAAAAAQABAAA=', 'base64'), 200];
+            }
+
+            if (argv.favicon) {
+                console.log('Using custom favicon');
+                if (fs.existsSync(argv.favicon)) {
+                    return [fs.readFileSync(argv.favicon), 200];
+                } else if (argv.favicon.startsWith('http')) {
+                    return [argv.favicon, 301];
+                } else {
+                    console.error('Custom favicon not found, using default favicon');
+                }
+            }
+
+            return ['https://parsefiles.back4app.com/JPaQcFfEEQ1ePBxbf6wvzkPMEqKYHhPYv8boI1Rc/f1a996fc1f45497819f261965f897780_syeAMS9yEl.png', 301];
+        })();
+        if (code === 301) {
+            response.writeHead(code, {
+                'Location': faviconUrl,
+            });
+            response.end();
+        } else {
+            response.writeHead(code, {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'OPTIONS, GET',
+                'Access-Control-Max-Age': 2592000, // 30 days
+            });
+            response.end(faviconUrl);
+        }
         return;
     }
     console.log('Received request from client: ', request.url);
@@ -113,12 +159,12 @@ httpServer.on('request', async (request, response) => {
             });
         } else {
             response.writeHead(500, {
-                'Content-Type': 'text/json;charset=utf-8',
+                'Content-Type': 'text/plain;charset=utf-8',
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'OPTIONS, GET',
                 'Access-Control-Max-Age': 2592000, // 30 days
             });
-            response.end();
+            response.end('无内容');
         }
         return;
     }
@@ -211,13 +257,14 @@ httpServer.on('request', async (request, response) => {
 });
 
 
-// 监听 8080 端口
-httpServer.listen(8080, () => {
+// 监听 port 端口
+const port = argv.port ?? 8080;
+httpServer.listen(port, () => {
     console.log("==========================================");
     console.log("Server Status:");
     console.log("==========================================");
     console.log("The server is currently up and running.");
-    console.log("It is listening for incoming connections on port 8080.");
+    console.log(`It is listening for incoming connections on port ${port}.`);
     console.log();
     console.log("You can connect to the server using the following addresses:");
     const addressesMessage = [
@@ -229,53 +276,64 @@ httpServer.listen(8080, () => {
         .filter((iface) => iface.family === 'IPv4')
         .map((iface, index) => [addressesMessage[index], iface.address])
         .slice(0, 2)
-        .forEach(ip => console.log(`${ip[0]}http://${ip[1]}:8080/`));
+        .forEach(ip => console.log(`${ip[0]}http://${ip[1]}:${port}/`));
+
+
     // Create an SSH client
     const conn = new Client();
 
-    // 创建一个新的 Socket 并设置错误处理
-    function createSocket(reject) {
-        const srcSocket = new Socket();
-        srcSocket.on('error', () => {
-            if (!srcSocket.remote) reject();
-            else srcSocket.remote.end();
-        });
-        return srcSocket;
-    }
-
-    conn.on('ready', async () => {
-        // 开始一个交互式 shell 会话
-        conn.shell((err, stream) => {
-            if (err) console.error(err);
-            const ansiEscapeSequenceRegex = /\x1b\[\d+m/g;
-            stream.on('data', data => {
-                data = data.toString().replace(ansiEscapeSequenceRegex, '');
-                if (data === '') return;
-                if (data.startsWith('Forwarding')) {
-                    console.log(`3. Public Address (via Serveo): ${data.split(' ').pop().slice(0, -2) + '/'}`);
-                    console.log();
-                    console.log("Please choose the address that is most appropriate for your needs.");
-                    console.log("==========================================");
-                    return;
-                }
-                console.log(data.slice(0, -2));
+    if (argv.disableServeo) {
+        console.log();
+        console.log("Serveo is currently disabled.");
+        console.log("You can enable Serveo by removing the --disableServeo flag.");
+        console.log();
+        console.log("Please choose the address that is most appropriate for your needs.");
+        console.log("==========================================");
+    } else {
+        // 创建一个新的 Socket 并设置错误处理
+        function createSocket(reject) {
+            const srcSocket = new Socket();
+            srcSocket.on('error', () => {
+                if (!srcSocket.remote) reject();
+                else srcSocket.remote.end();
             });
-        })
+            return srcSocket;
+        }
 
-        // 请求从远程服务器转发端口
-        conn.forwardIn('LOCALHOST', 80, (err, port) => {
-            if (err) console.error(err);
-            conn.emit('forward-in', port);
+        conn.on('ready', async () => {
+            // 开始一个交互式 shell 会话
+            conn.shell((err, stream) => {
+                if (err) console.error(err);
+                const ansiEscapeSequenceRegex = /\x1b\[\d+m/g;
+                stream.on('data', data => {
+                    data = data.toString().replace(ansiEscapeSequenceRegex, '');
+                    if (data === '') return;
+                    if (data.startsWith('Forwarding')) {
+                        console.log(`3. Public Address (via Serveo): ${data.split(' ').pop().slice(0, -2) + '/'}`);
+                        console.log();
+                        console.log("Please choose the address that is most appropriate for your needs.");
+                        console.log("==========================================");
+                        return;
+                    }
+                    console.log(data.slice(0, -2));
+                });
+            })
+
+            // 请求从远程服务器转发端口
+            conn.forwardIn('LOCALHOST', 80, (err, port) => {
+                if (err) console.error(err);
+                conn.emit('forward-in', port);
+            });
+        }).on('tcp connection', (_, accept, reject) => {
+            const srcSocket = createSocket(reject);
+            srcSocket.connect(port, 'localhost', () => {
+                srcSocket.remote = accept();
+                srcSocket.pipe(srcSocket.remote).pipe(srcSocket);
+            });
+        }).connect({
+            host: 'serveo.net',
+            username: os.userInfo().username,
+            tryKeyboard: true
         });
-    }).on('tcp connection', (_, accept, reject) => {
-        const srcSocket = createSocket(reject);
-        srcSocket.connect(8080, 'localhost', () => {
-            srcSocket.remote = accept();
-            srcSocket.pipe(srcSocket.remote).pipe(srcSocket);
-        });
-    }).connect({
-        host: 'serveo.net',
-        username: os.userInfo().username,
-        tryKeyboard: true
-    });
+    }
 });
