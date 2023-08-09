@@ -8,7 +8,7 @@ const os = require('os');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 
-const getDataPath = (filename) =>
+const getDataPath = filename =>
     path.join(
         process.pkg ?
             __dirname :
@@ -273,14 +273,10 @@ httpServer.listen(port, () => {
     ]
     Object.values(os.networkInterfaces())
         .flat()
-        .filter((iface) => iface.family === 'IPv4')
+        .filter(iface => iface.family === 'IPv4')
         .map((iface, index) => [addressesMessage[index], iface.address])
         .slice(0, 2)
         .forEach(ip => console.log(`${ip[0]}http://${ip[1]}:${port}/`));
-
-
-    // Create an SSH client
-    const conn = new Client();
 
     if (argv.disableServeo) {
         console.log();
@@ -291,7 +287,7 @@ httpServer.listen(port, () => {
         console.log("==========================================");
     } else {
         // 创建一个新的 Socket 并设置错误处理
-        function createSocket(reject) {
+        const createSocket = reject => {
             const srcSocket = new Socket();
             srcSocket.on('error', () => {
                 if (!srcSocket.remote) reject();
@@ -300,40 +296,102 @@ httpServer.listen(port, () => {
             return srcSocket;
         }
 
-        conn.on('ready', async () => {
-            // 开始一个交互式 shell 会话
-            conn.shell((err, stream) => {
-                if (err) console.error(err);
-                const ansiEscapeSequenceRegex = /\x1b\[\d+m/g;
-                stream.on('data', data => {
-                    data = data.toString().replace(ansiEscapeSequenceRegex, '');
-                    if (data === '') return;
-                    if (data.startsWith('Forwarding')) {
-                        console.log(`3. Public Address (via Serveo): ${data.split(' ').pop().slice(0, -2) + '/'}`);
-                        console.log();
-                        console.log("Please choose the address that is most appropriate for your needs.");
-                        console.log("==========================================");
+        const maxReconnectTries = 10;
+        const maxReconnectInterval = 60000; // 1 minute
+
+        const connect = conn => {
+            try {
+                conn.connect({
+                    host: 'serveo.net',
+                    username: os.userInfo().username,
+                    tryKeyboard: true,
+                    keepaliveInterval: 60 * 1000, // 防止连接断开, 单位为毫秒
+                });
+            } catch (err) {
+                console.error(err);
+                reconnect(conn);
+            }
+        }
+
+        const reconnect = conn => {
+            try {
+                console.log('与远程服务器的连接已断开');
+                conn.reconnectTries = conn.reconnectTries ?? 0;
+                if (conn.reconnectTries >= maxReconnectTries) {
+                    console.error('已达到最大重连次数, 停止尝试');
+                    return;
+                }
+                conn.reconnectTries++;
+                setTimeout(() => {
+                    connect(conn);
+                }, Math.min(1000 * Math.pow(2, conn.reconnectTries), maxReconnectInterval));
+                console.log(`正在尝试重新连接到远程服务器... (第 ${conn.reconnectTries} 次)`);
+            }
+            catch (err) {
+                console.log(err);
+            }
+        }
+
+        // Create an SSH client
+        const conn = new Client();
+
+        connect(
+            conn.on('ready', async () => {
+                // 开始一个交互式 shell 会话
+                conn.shell((err, stream) => {
+                    if (err) {
+                        console.error(err);
+                        reconnect(conn);
+                        return;
+                    };
+                    const ansiEscapeSequenceRegex = /\x1b\[\d+m/g;
+                    stream.on('data', data => {
+                        data = data.toString().replace(ansiEscapeSequenceRegex, '');
+                        if (data === '') return;
+                        if (data.startsWith('Forwarding')) {
+                            console.log(`3. Public Address (via Serveo): ${data.split(' ').pop().slice(0, -2) + '/'}`);
+                            console.log();
+                            console.log("Please choose the address that is most appropriate for your needs.");
+                            console.log("==========================================");
+                            return;
+                        }
+                        console.log(data.slice(0, -2));
+                    });
+                })
+
+                // 请求从远程服务器转发端口
+                conn.forwardIn('LOCALHOST', 80, err => {
+                    if (err) {
+                        console.error(err);
+                        reconnect(conn);
                         return;
                     }
-                    console.log(data.slice(0, -2));
+                    conn.emit('forward-in', 80);
                 });
+            }).on('connect', () => {
+                conn.reconnectTries = 0;
+            }).on('close', () => {
+                reconnect(conn);
+            }).on('error', err => {
+                console.error(err);
+                reconnect(conn);
+            }).on('end', () => {
+                reconnect(conn);
+            }).on('timeout', () => {
+                reconnect(conn);
+            }).on('tcp connection', (_, accept, reject) => {
+                try {
+                    const srcSocket = createSocket(reject);
+                    srcSocket.connect(port, 'localhost', () => {
+                        srcSocket.remote = accept();
+                        srcSocket.pipe(srcSocket.remote).pipe(srcSocket);
+                    });
+                }
+                catch (err) {
+                    console.error(err);
+                    reject();
+                }
             })
-
-            // 请求从远程服务器转发端口
-            conn.forwardIn('LOCALHOST', 80, (err, port) => {
-                if (err) console.error(err);
-                conn.emit('forward-in', port);
-            });
-        }).on('tcp connection', (_, accept, reject) => {
-            const srcSocket = createSocket(reject);
-            srcSocket.connect(port, 'localhost', () => {
-                srcSocket.remote = accept();
-                srcSocket.pipe(srcSocket.remote).pipe(srcSocket);
-            });
-        }).connect({
-            host: 'serveo.net',
-            username: os.userInfo().username,
-            tryKeyboard: true
-        });
+        );
     }
 });
